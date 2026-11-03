@@ -1,0 +1,25 @@
+name: Atualizar base
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python coletar_camara.py --inicio 2023 --fim 2026
+      - name: Publicar a base
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view base-dados || gh release create base-dados --title "Base de dados" --notes "Atualizada automaticamente"
+          gh release upload base-dados camara.duckdb --clobber
